@@ -8,25 +8,25 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type room struct {
+type Room struct {
 	forward chan []byte
-	join    chan *client
-	leave   chan *client
-	clients map[*client]bool
+	join    chan *Client
+	leave   chan *Client
+	clients map[*Client]bool
 	tracer  trace.Tracer
 }
 
-func NewRoom() *room {
-	return &room{
+func NewRoom() *Room {
+	return &Room{
 		forward: make(chan []byte),
-		join:    make(chan *client),
-		leave:   make(chan *client),
-		clients: make(map[*client]bool),
+		join:    make(chan *Client),
+		leave:   make(chan *Client),
+		clients: make(map[*Client]bool),
 		tracer:  trace.Off(),
 	}
 }
 
-func (r *room) run() {
+func (r *Room) run() {
 	for {
 		select {
 		case client := <-r.join:
@@ -53,7 +53,7 @@ const (
 
 var upgrader = &websocket.Upgrader{ReadBufferSize: socketBuferSize, WriteBufferSize: messageBufferSize}
 
-func (r *room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func (r *Room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	socket, err := upgrader.Upgrade(w, req, nil)
 
 	if err != nil {
@@ -61,7 +61,7 @@ func (r *room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	client := &client{
+	client := &Client{
 		socket: socket,
 		send:   make(chan []byte, messageBufferSize),
 		room:   r,

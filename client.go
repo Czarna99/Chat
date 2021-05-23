@@ -1,14 +1,16 @@
 package main
 
-import "github.com/gorilla/websocket"
+import (
+	"github.com/gorilla/websocket"
+)
 
-type client struct {
+type Client struct {
 	socket *websocket.Conn
 	send   chan []byte
-	room   *room
+	room   *Room
 }
 
-func (c *client) read() {
+func (c *Client) read() {
 	defer c.socket.Close()
 	for {
 		_, msg, err := c.socket.ReadMessage()
@@ -19,7 +21,7 @@ func (c *client) read() {
 	}
 }
 
-func (c *client) write() {
+func (c *Client) write() {
 	defer c.socket.Close()
 	for msg := range c.send {
 		err := c.socket.WriteMessage(websocket.TextMessage, msg)
