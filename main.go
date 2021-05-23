@@ -1,9 +1,11 @@
 package main
 
 import (
+	trace "Chat/Trace"
 	"flag"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"sync"
 	"text/template"
@@ -22,15 +24,16 @@ func (t *templateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	t.templ.Execute(w, r)
 }
 func main() {
-	var adr = flag.String("addr", ":8080", "Adres aplikacji internetowej.")
+	var adr = flag.String("addr", ":8080", "App address.")
 	flag.Parse()
 	r := NewRoom()
+	r.tracer = trace.New(os.Stdout)
 
 	http.Handle("/", &templateHandler{filename: "chat.html"})
 	http.Handle("/room", r)
 
 	go r.run()
-	log.Println("Uruchamianie serwera WWW pod adresem:", adr)
+	log.Println("Running WWW server:", adr)
 	if err := http.ListenAndServe(*adr, nil); err != nil {
 		log.Fatal("ListenAndServe:", err)
 	}
